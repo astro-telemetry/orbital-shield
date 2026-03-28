@@ -1,0 +1,41 @@
+# --- MacOS Garbage ---
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# --- Go Binaries & Tools ---
+bin/
+out/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+# Keep the go.mod and go.sum, but ignore local vendor folders if you use them
+# vendor/
+
+# --- Terraform & Infrastructure ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# --- IDEs & Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Secrets (The "War Games" Rule) ---
+.env
+secret.txt
+keys/
