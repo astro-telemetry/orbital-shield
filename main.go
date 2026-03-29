@@ -13,18 +13,17 @@ type InterfaceReport struct {
 	IsActive      bool     `json:"is_active"`
 	MTU           int      `json:"mtu"`
 	IPs           []string `json:"ip_list"`
+	ErrorLog      string   `json:"error_log,omitempty"`
 }
 
 func main() {
-	fmt.Println("--- Orbital Shield: Network Status Monitor ---")
 
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		fmt.Printf("Critical Error: %v\n", err)
 		return
 	}
 
-	interface_reports := make([]InterfaceReport, 5)
+	interface_reports := make([]InterfaceReport, 0)
 
 	for _, iface := range interfaces {
 		// Bitwise check: Is the 'Up' flag set?
@@ -36,30 +35,26 @@ func main() {
 
 		if isActive {
 			report.MTU = iface.MTU
-			fmt.Printf("[ACTIVE]  Interface: %-10s (MTU: %d)\n", iface.Name, iface.MTU)
 			ips := []string{}
 			addrs, err := iface.Addrs()
 			if err != nil {
-				fmt.Printf("  ! Error: %v\n", err)
+				report.ErrorLog = err.Error()
+				interface_reports = append(interface_reports, report)
 				continue
 			}
 			for _, addr := range addrs {
-				fmt.Printf("  -> Addr: %s\n", addr.String())
 				ips = append(ips, addr.String())
 			}
 			report.IPs = ips
-		} else {
-			// Documenting the 'Down' cards
-			fmt.Printf("[OFFLINE] Interface: %-10s (Hardware Check Recommended)\n", iface.Name)
 		}
-		fmt.Println("----------------------------------------------")
 		interface_reports = append(interface_reports, report)
-
 	}
+
 	formatted_reports, err := json.MarshalIndent(interface_reports, "", "  ")
+
 	if err != nil {
-		fmt.Println(string(formatted_reports))
-	} else {
 		fmt.Printf("	! Error: %v\n", err)
+	} else {
+		fmt.Println(string(formatted_reports))
 	}
 }
