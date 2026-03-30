@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
 	"time"
 )
 
 type InterfaceReport struct {
+	HostID        string   `json:"hostname"`
 	Timestamp     int64    `json:"timestamp"`
 	InterfaceName string   `json:"interface_name"`
 	IsActive      bool     `json:"is_active"`
@@ -16,22 +18,28 @@ type InterfaceReport struct {
 	ErrorLog      string   `json:"error_log,omitempty"`
 }
 
-func main() {
+func CollectTelemetry() ([]InterfaceReport, error) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return nil, err
+	}
 
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	interface_reports := make([]InterfaceReport, 0)
+	report := InterfaceReport{
+		HostID:    hostname,
+		Timestamp: time.Now().Unix(),
+	}
 
 	for _, iface := range interfaces {
 		// Bitwise check: Is the 'Up' flag set?
 		isActive := iface.Flags&net.FlagUp != 0
-		report := InterfaceReport{
-			Timestamp:     time.Now().Unix(),
-			InterfaceName: iface.Name,
-			IsActive:      isActive}
+		report.InterfaceName = iface.Name
+		report.IsActive = isActive
 
 		if isActive {
 			report.MTU = iface.MTU
@@ -49,8 +57,12 @@ func main() {
 		}
 		interface_reports = append(interface_reports, report)
 	}
+	return interface_reports, err
+}
 
-	formatted_reports, err := json.MarshalIndent(interface_reports, "", "  ")
+func main() {
+
+	formatted_reports, err := json.MarshalIndent(CollectTelemetry, "", "  ")
 
 	if err != nil {
 		fmt.Printf("	! Error: %v\n", err)
