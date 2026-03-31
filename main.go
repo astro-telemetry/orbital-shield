@@ -22,13 +22,13 @@ type InterfaceReport struct {
 
 var sanitizeRegex = regexp.MustCompile("[^a-z0-9]+")
 
-func Sanitize(input string) string {
+func sanitize(input string) string {
 	output := strings.ToLower(input)
 	output = sanitizeRegex.ReplaceAllString(output, "-")
 	return strings.Trim(output, "-")
 }
 
-func CollectTelemetry() ([]InterfaceReport, error) {
+func collectTelemetry() ([]InterfaceReport, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, err
@@ -70,12 +70,9 @@ func CollectTelemetry() ([]InterfaceReport, error) {
 	return interface_reports, nil
 }
 
-func main() {
-	// create directory
-	os.MkdirAll("telemetry_logs", 0755)
-
+func runTelemetryCycle() {
 	// collect data
-	collect_telemetry, err := CollectTelemetry()
+	collect_telemetry, err := collectTelemetry()
 	if err != nil {
 		fmt.Printf("Collector Error: %v\n", err)
 		os.Exit(1)
@@ -95,7 +92,7 @@ func main() {
 	}
 
 	// create filename
-	host := Sanitize(collect_telemetry[0].HostID)
+	host := sanitize(collect_telemetry[0].HostID)
 	ts := collect_telemetry[0].Timestamp
 	filename := fmt.Sprintf("telemetry_logs/telemetry_%s_%d.json", host, ts)
 
@@ -107,5 +104,16 @@ func main() {
 	}
 
 	fmt.Printf("Successfully saved telemetry to: %s\n", filename)
+}
+
+func main() {
+	// create directory
+	os.MkdirAll("telemetry_logs", 0755)
+
+	for {
+		runTelemetryCycle()
+
+		time.Sleep(60 * time.Second)
+	}
 
 }

@@ -1,0 +1,4 @@
+telemetry_logs/
+*.json
+.git
+orbital-shield
