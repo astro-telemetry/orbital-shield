@@ -1,5 +1,5 @@
 # Orbital Shield  
-Lightweight network monitoring agent for real-time interface and routing visibility
+Lightweight network monitoring agent for real-time network interface visibility
 
 ---
 
